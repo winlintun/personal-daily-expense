@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+    Update
+{% endblock %}
+
+{% block content %}
+ <div class="container">
+    <div class="row mt-5">
+        <div class="col-lg-2 mb-3">
+            <span>
+                <a class="btn btn-outline-dark" href="{% url 'home' %}" style="text-decoration: none; ">Back</a>
+            </span>
+        </div>
+        <div class="col-lg-8 col-sm-12">
+            <h3>Update</h3>
+            <form action="" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form | crispy }}
+                <button class="btn btn-outline-success" type="submit">Update</button>
+            </form>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+ </div>
+{% endblock %}

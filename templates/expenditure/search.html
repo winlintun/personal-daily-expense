@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+    Search
+{% endblock %}
+
+{% block content %}
+ <div class="container">
+    <div class="row mt-5">
+        <div class="col-lg-2 mb-3"><button type="button" class="btn btn-outline-dark">
+            <a class="link-secondary  link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" href="{% url 'home' %}" style="text-decoration: none; ">Back</a>
+        </button></div>
+        <div class="col-lg-8 col-sm-12">
+            <h3>Search Result</h3>
+            {% for post in posts %}
+            <div class="card text-bg-dark mb-3" style="max-width: 18rem;">
+                <div class="card-header"></div>
+                <div class="card-body">
+                  <h5 class="card-title">{{ post.title }} {{post.money }}NTD</h5>
+                  <p class="card-text">{{ post.body }}</p>
+                </div>
+              </div>
+            {% endfor %}
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+ </div>
+{% endblock %}

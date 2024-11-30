@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+    New Post Form
+{% endblock %}
+
+{% block content %}
+ <div class="container">
+    <div class="row mt-5">
+        <div class="col-lg-2 cl-md-2 mb-3">
+            <span>
+                <a class="btn btn-outline-dark" href="{% url 'home' %}" style="text-decoration: none; ">Back</a>
+            </span>
+        </div>
+        <div class="col">
+            <div class="container-fluid">
+                <form action="" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    <button class="btn btn-outline-success mt-3" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+ </div>
+{% endblock %}
