@@ -69,30 +69,54 @@ def register(request):
 
 
 class Register(generic.CreateView):
+    """
+    User register class
+    - create new account
+    """
     form_class = UserRegistrationForm
     success_url = reverse_lazy("login")
     template_name = "expenditure/register.html"
 
 
 class Logout(generic.View):
+    """
+    User logout class
+    - logout user account
+    """
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect("login")
 
 
 class Home(generic.ListView, LoginRequiredMixin):
+    """
+    Home User Class
+    - show data user use daily expense 
+    - add page pagination
+
+    """
+
     model = Post
     template_name = "expenditure/index.html"
-    #context_object_name = "posts"
-    # login_url = reverse_lazy("login")
+    paginate_by = 5
+    queryset = Post.objects.filter(status=1).order_by("-create_date")
+
 
     def get_queryset(self):
+        """
+        filter only publish post
+        """
         return Post.objects.filter(status=1)
 
     def get_context_data(self, **kwargs):
+        """
+        - post all list
+        - total sum amount
+        - money format
+        """
         context = super(Home, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            context['posts'] = Post.objects.filter(user=self.request.user).all()
+            context['posts'] = Post.objects.filter(user=self.request.user).all()[:5]
             total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))['total']
 
             if total_money is not None:

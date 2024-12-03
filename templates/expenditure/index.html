@@ -28,9 +28,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for post in posts %}
+                  {% for post in page_obj %}
                     <tr>
-                      <th scope="row">{{forloop.counter}}</th>
+                      <!-- <th scope="row">{{forloop.counter}}</th> -->
+                       <th scope="row">{{ post.id }}</th>
                       <td>{{post.title}}</td>
                       <td>{{post.location}}</td>
                       <td>{{post.money}} NTD</td>
@@ -52,6 +53,40 @@
                   </tr>
                 </tbody>
               </table>
+              <!-- page navigation -->
+               {% if is_paginated %}
+                <nav aria-label="Page navigation">
+                  <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        Previous
+                      </a>
+                    {% endif %}
+
+                    {% for i in paginator.page_rage %}
+                      {% if page_obj.number == i %}
+                        <li class="page-item active">
+                          {{ i }}
+                        </li>
+                      {% else %}
+                        <li class="page-item">
+                          <a class="page-link" href="?page={{i}}">
+                            {{ i }}
+                          </a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+
+                      {% if page_obj.has_next %}
+                      <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        Next
+                      </a>
+                      {% endif %}
+                    </li>
+                  </ul>
+                </nav>
+              {% endif %}
         {% else %}
         <div class="text-center">
           <h3 class="mb-5">Welcome Personal Expenditure Note Web</h3>
