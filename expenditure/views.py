@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from .models import Post
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -10,7 +11,8 @@ from .forms import UserRegistrationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.db.models import Sum
-from django.http import HttpResponseRedirect
+from django.utils.timezone import now
+from django.http import Http404
 
 """
 def login(request):
@@ -88,7 +90,8 @@ class Logout(generic.View):
         return redirect("login")
 
 
-class Home(generic.ListView, LoginRequiredMixin):
+@method_decorator(login_required, name="dispatch")
+class Home(generic.ListView):
     """
     Home User Class
     - show data user use daily expense 
@@ -100,13 +103,14 @@ class Home(generic.ListView, LoginRequiredMixin):
     template_name = "expenditure/index.html"
     paginate_by = 5
     queryset = Post.objects.filter(status=1).order_by("-create_date")
+    #context_object_name = "posts"
 
 
     def get_queryset(self):
         """
         filter only publish post
         """
-        return Post.objects.filter(status=1)
+        return Post.objects.filter(status=1).filter(user=self.request.user).all()
 
     def get_context_data(self, **kwargs):
         """
@@ -115,29 +119,29 @@ class Home(generic.ListView, LoginRequiredMixin):
         - money format
         """
         context = super(Home, self).get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            context['posts'] = Post.objects.filter(user=self.request.user).all()[:5]
-            total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))['total']
+        #context['posts'] = Post.objects.filter(user=self.request.user).all()
+        total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))['total']
 
-            if total_money is not None:
-                context['total_money'] = "{:.2f}".format(total_money)
-            return context
-
+        if total_money is not None:
+            context['total_money'] = "{:.2f}".format(total_money)
+        return context
 
 
-class PostUpdateView(LoginRequiredMixin, generic.edit.UpdateView):
+
+@method_decorator(login_required, name="dispatch")
+class PostUpdateView(generic.edit.UpdateView):
     model = Post
     fields = ['title', 'location', 'money', 'status']
     template_name = "expenditure/update.html"
     success_url = reverse_lazy("home")
-    login_url = reverse_lazy("login")
 
 
-class PostDeleteView(LoginRequiredMixin, generic.edit.DeleteView):
+
+@method_decorator(login_required, name="dispatch")
+class PostDeleteView(generic.edit.DeleteView):
     model = Post
     template_name = "expenditure/delete.html"
     success_url = reverse_lazy("home")
-    login_url = reverse_lazy("login")
 
 
 
@@ -151,11 +155,11 @@ class PostSearchView(generic.ListView):
         return Post.objects.filter(Q(title__icontains=query) | Q(location__icontains=query)).filter(user=self.request.user)
     
 
-class PostCreateView(LoginRequiredMixin, generic.CreateView):
+@method_decorator(login_required, name="dispatch")
+class PostCreateView(generic.CreateView):
     model = Post
     fields = ['title', 'location', 'money']
     template_name = "expenditure/post_create_form.html"
-    login_url = reverse_lazy('login')
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -163,3 +167,28 @@ class PostCreateView(LoginRequiredMixin, generic.CreateView):
         return super().form_valid(form)
     
     success_url = reverse_lazy("home")
+
+@method_decorator(login_required, name="dispatch")
+class PostMonthArchiveView(generic.MonthArchiveView):
+    date_field = "create_date"
+    allow_future = True
+    month_format = "%m"
+    year_format = "%Y"
+
+    def get_queryset(self):
+        return Post.objects.filter(user=self.request.user).all()
+    
+
+    def get_year(self):
+        try:
+            year = super(PostMonthArchiveView, self).get_year()
+        except Http404:
+            year = now().strftime(self.get_year_format())
+        return super().get_year()
+
+    def get_month(self):
+        try:
+            month = super(PostMonthArchiveView, self).get_month()
+        except Http404:
+            month = now().strftime(self.get_month_format())
+        return super().get_month()

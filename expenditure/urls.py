@@ -14,6 +14,8 @@ urlpatterns = [
     path("<int:pk>/delete/", views.PostDeleteView.as_view(), name="delete"),
     path("search/", views.PostSearchView.as_view(), name="search"),
     path("create/", views.PostCreateView.as_view(), name="create"),
+    path("<int:year>/<int:month>/", views.PostMonthArchiveView.as_view(),
+         name="archive_month"),
     
          
 ]
