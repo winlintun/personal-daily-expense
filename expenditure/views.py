@@ -96,21 +96,28 @@ class Home(generic.ListView):
     Home User Class
     - show data user use daily expense 
     - add page pagination
+    - adding today buying date
 
     """
 
     model = Post
     template_name = "expenditure/index.html"
-    paginate_by = 5
+    paginate_by = 10
     queryset = Post.objects.filter(status=1).order_by("-create_date")
     #context_object_name = "posts"
+    today = now()
 
 
     def get_queryset(self):
         """
         filter only publish post
         """
-        return Post.objects.filter(status=1).filter(user=self.request.user).all()
+        
+        post = Post.objects.filter(status=1).filter(user=self.request.user).filter(create_date__date=f"{self.today.year}-{self.today.month}-{self.today.day}")
+        print(post)
+        # post = Post.objects.filter(status=1).filter(user=self.request.user).all()
+
+        return post
 
     def get_context_data(self, **kwargs):
         """
@@ -120,10 +127,12 @@ class Home(generic.ListView):
         """
         context = super(Home, self).get_context_data(**kwargs)
         #context['posts'] = Post.objects.filter(user=self.request.user).all()
-        total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))['total']
+        total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))
+        context['total'] = round(total_money['total'], 2)
 
-        if total_money is not None:
-            context['total_money'] = "{:.2f}".format(total_money)
+
+        # if context['total_money'] is not None:
+        #     context['total_money'] = "{:.2f}".format(context['total_money'])
         return context
 
 
