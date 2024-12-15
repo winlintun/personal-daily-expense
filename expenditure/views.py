@@ -102,22 +102,25 @@ class Home(generic.ListView):
 
     model = Post
     template_name = "expenditure/index.html"
-    paginate_by = 10
     queryset = Post.objects.filter(status=1).order_by("-create_date")
-    #context_object_name = "posts"
+    
     today = now()
 
-
     def get_queryset(self):
-        """
-        filter only publish post
-        """
-        
-        post = Post.objects.filter(status=1).filter(user=self.request.user).filter(create_date__date=f"{self.today.year}-{self.today.month}-{self.today.day}")
-        print(post)
-        # post = Post.objects.filter(status=1).filter(user=self.request.user).all()
+        global post_by_day, posts_by_day
 
-        return post
+        post_by_day = Post.objects.filter(status=1).filter(user=self.request.user).filter(create_date__icontains=f"{self.today.year}-{self.today.month}-{self.today.day}")
+        posts_by_day = Post.objects.filter(status=1).filter(user=self.request.user).all()
+
+
+        if post_by_day is not None:
+            return post_by_day
+        else:
+            self.paginate_by = 10
+            return posts_by_day
+        
+    
+
 
     def get_context_data(self, **kwargs):
         """
@@ -127,13 +130,50 @@ class Home(generic.ListView):
         """
         context = super(Home, self).get_context_data(**kwargs)
         #context['posts'] = Post.objects.filter(user=self.request.user).all()
-        total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))
-        context['total'] = round(total_money['total'], 2)
+        # total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))
+        day_total_money = post_by_day.aggregate(total=Sum("money"))
 
+        # for show day to day data
+        if day_total_money['total'] is not None:
+            context['total_by_day'] = round(day_total_money['total'], 2)
+            context['post_by_day'] = post_by_day
 
-        # if context['total_money'] is not None:
-        #     context['total_money'] = "{:.2f}".format(context['total_money'])
+        # all_total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))
+
+        # show alway all data
+        all_total_money = posts_by_day.aggregate(total=Sum("money"))
+        context['total_all_day'] = round(all_total_money['total'], 2)
+        context['posts_by_day'] = posts_by_day
+        
         return context
+
+"""
+@method_decorator(login_required, name="dispatch")
+class HomeViewAll(generic.ListView):
+    
+    # Show all data
+    
+    model = Post
+    template_name = "expenditure/view_all_day.html"
+    paginate_by = 10
+    queryset = Post.objects.filter(status=1).order_by("-create_date")
+
+    def get_queryset(self):
+    
+        # filter only publish post
+    
+        post = Post.objects.filter(status=1).filter(user=self.request.user).all()
+
+        return post
+
+    def get_context_data(self, **kwargs):
+        context = super(HomeViewAll, self).get_context_data(**kwargs)
+        all_total_money = Post.objects.filter(user=self.request.user).aggregate(total=Sum("money"))
+        context['all_total_money'] = round(all_total_money['total'], 2)
+
+        return context
+"""
+
 
 
 
