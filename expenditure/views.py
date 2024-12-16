@@ -112,11 +112,15 @@ class Home(generic.ListView):
         post_by_day = Post.objects.filter(status=1).filter(user=self.request.user).filter(create_date__icontains=f"{self.today.year}-{self.today.month}-{self.today.day}")
         posts_by_day = Post.objects.filter(status=1).filter(user=self.request.user).all()
 
+        # print("day: ", post_by_day)
+
 
         if post_by_day is not None:
+            # print("post by day: ", post_by_day)
             return post_by_day
         else:
             self.paginate_by = 10
+            # print("posts by day: ", posts_by_day)
             return posts_by_day
         
     
